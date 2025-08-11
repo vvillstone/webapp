@@ -1,0 +1,9 @@
+twig:
+    default_path: '%kernel.project_dir%/templates'
+    paths:
+        '%kernel.project_dir%/src/Modules/User/Resources/views': User
+        '%kernel.project_dir%/src/Modules/Core/Resources/views': Core
+        '%kernel.project_dir%/src/Modules/Api/Resources/views': Api
+    debug: false
+    strict_variables: false
+    exception_controller: null

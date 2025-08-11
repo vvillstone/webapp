@@ -1,0 +1,27 @@
+framework:
+    test: true
+    session:
+        storage_factory_id: session.storage.factory.mock_file
+    profiler:
+        collect: false
+    cache:
+        app: cache.adapter.array
+    mailer:
+        dsn: 'smtp://mailhog:1025'
+    http_client:
+        scoped_clients:
+            # configure a scoped HTTP client for the API
+            api_client:
+                base_uri: 'https://api.github.com/'
+                headers:
+                    Accept: 'application/vnd.github.v3+json'
+                    User-Agent: 'MyApp/1.0'
+            # an HTTP client scoped to the local API
+            local_api_client:
+                base_uri: 'http://localhost/api/'
+    cache:
+        app: cache.adapter.array
+    serializer:
+        enable_annotations: true
+        mapping:
+            paths: ['%kernel.project_dir%/config/serialization']

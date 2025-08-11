@@ -1,0 +1,21 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+api_platform:
+    resource: .
+    type: api_platform
+    prefix: /api
+
+# Routes pour les modules
+user_routes:
+    resource: '../src/Modules/User/Controller/'
+    type: attribute
+    prefix: /user
+
+api_test_routes:
+    resource: '../src/Modules/Api/Controller/'
+    type: attribute
+    prefix: /api/test

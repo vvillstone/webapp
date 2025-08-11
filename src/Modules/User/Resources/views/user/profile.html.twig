@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">My Profile</h3>
+                </div>
+                <div class="card-body">
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Personal Information</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>First Name:</strong></td>
+                                    <td>{{ user.firstName }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Last Name:</strong></td>
+                                    <td>{{ user.lastName }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Roles:</strong></td>
+                                    <td>{{ user.roles|join(', ') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Member since:</strong></td>
+                                    <td>{{ user.createdAt|date('F j, Y') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Account Actions</h5>
+                            <div class="d-grid gap-2">
+                                <a href="{{ path('user_profile_edit') }}" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </a>
+                                <a href="#" class="btn btn-secondary">
+                                    <i class="fas fa-key"></i> Change Password
+                                </a>
+                                <a href="#" class="btn btn-info">
+                                    <i class="fas fa-cog"></i> Account Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

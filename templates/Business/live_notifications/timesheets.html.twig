@@ -1,0 +1,330 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Timesheet Live Notifications{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .timesheet-notification {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .timesheet-notification.new {
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .timesheet-notification.created {
+            border-left: 4px solid #10b981;
+        }
+        
+        .timesheet-notification.updated {
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .timesheet-notification.deleted {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .timesheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .timesheet-title {
+            font-weight: 600;
+            color: #374151;
+            font-size: 1.1rem;
+        }
+        
+        .timesheet-time {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .timesheet-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+        }
+        
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .status-submitted {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-approved {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .action-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-created {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .action-updated {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .action-deleted {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 1000;
+        }
+        
+        .status-connected {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-disconnected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-connecting {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Timesheet Live Notifications</h1>
+            <p class="text-gray-600">Real-time updates for timesheet events</p>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status status-connecting" id="connectionStatus">
+            Connecting...
+        </div>
+
+        <!-- Notifications Container -->
+        <div id="notificationsContainer">
+            <div class="text-center text-gray-500 py-12">
+                <div class="text-lg font-medium mb-2">Waiting for timesheet events...</div>
+                <div class="text-sm">Create, update, or delete timesheets to see live notifications</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let eventSource = null;
+        let isConnected = false;
+
+        function initializeEventSource() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            updateConnectionStatus('connecting', 'Connecting...');
+
+            const hubUrl = '{{ mercure_hub_url }}';
+            const topics = [
+                'timesheet.created',
+                'timesheet.updated', 
+                'timesheet.deleted'
+            ];
+
+            const url = new URL(hubUrl);
+            topics.forEach(topic => {
+                url.searchParams.append('topic', topic);
+            });
+
+            eventSource = new EventSource(url.toString());
+
+            eventSource.onopen = function(event) {
+                updateConnectionStatus('connected', 'Connected');
+                isConnected = true;
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'timesheet') {
+                        handleTimesheetNotification(data);
+                    }
+                } catch (error) {
+                    console.error('Error parsing event data:', error);
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                updateConnectionStatus('disconnected', 'Disconnected');
+                isConnected = false;
+                console.error('EventSource error:', event);
+            };
+        }
+
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `connection-status status-${status}`;
+            statusElement.textContent = text;
+        }
+
+        function handleTimesheetNotification(data) {
+            const container = document.getElementById('notificationsContainer');
+            
+            // Remove "waiting for events" message if present
+            if (container.children.length === 1 && container.children[0].textContent.includes('Waiting for timesheet events')) {
+                container.innerHTML = '';
+            }
+
+            const notificationElement = createTimesheetNotificationElement(data);
+            container.insertBefore(notificationElement, container.firstChild);
+
+            // Limit to 20 notifications
+            while (container.children.length > 20) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function createTimesheetNotificationElement(data) {
+            const div = document.createElement('div');
+            div.className = `timesheet-notification ${data.data.action} new`;
+            
+            const timestamp = new Date(data.timestamp).toLocaleString();
+            const action = data.data.action;
+            const status = data.data.status;
+            
+            const actionBadge = `<span class="action-badge action-${action}">${action}</span>`;
+            const statusBadge = `<span class="status-badge status-${status}">${status}</span>`;
+            
+            div.innerHTML = `
+                ${actionBadge}
+                <div class="timesheet-header">
+                    <span class="timesheet-title">Timesheet ${action}</span>
+                    <span class="timesheet-time">${timestamp}</span>
+                </div>
+                <div class="timesheet-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Employee</span>
+                        <span class="detail-value">${data.data.employee}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Site</span>
+                        <span class="detail-value">${data.data.site}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Client</span>
+                        <span class="detail-value">${data.data.client}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">${data.data.date}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Hours</span>
+                        <span class="detail-value">${data.data.hours || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">${statusBadge}</span>
+                    </div>
+                </div>
+            `;
+
+            // Remove "new" class after animation
+            setTimeout(() => {
+                div.classList.remove('new');
+            }, 300);
+
+            return div;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventSource();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,475 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Live Notifications Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .notification-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
+        
+        .notification-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .notification-item:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notification-item.new {
+            border-left: 4px solid #3b82f6;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification-item.timesheet {
+            border-left: 4px solid #10b981;
+        }
+        
+        .notification-item.site {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .notification-item.test {
+            border-left: 4px solid #8b5cf6;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .notification-time {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .notification-content {
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        
+        .notification-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+        }
+        
+        .badge-created {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-updated {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-deleted {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-connected {
+            background-color: #10b981;
+        }
+        
+        .status-disconnected {
+            background-color: #ef4444;
+        }
+        
+        .status-connecting {
+            background-color: #f59e0b;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .controls {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Live Notifications Dashboard</h1>
+            <p class="text-gray-600">Real-time updates for Timesheet and Site events</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Connection Status -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Connection Status</h2>
+                <div class="flex items-center mb-4">
+                    <span class="status-indicator status-connecting" id="connectionStatus"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <p>Hub URL: <code class="bg-gray-100 px-2 py-1 rounded">{{ mercure_hub_url }}</code></p>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Statistics</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span>Timesheet Events:</span>
+                        <span id="timesheetCount" class="font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Site Events:</span>
+                        <span id="siteCount" class="font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Total Events:</span>
+                        <span id="totalCount" class="font-semibold">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Controls</h2>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="testEvent()">Test Event</button>
+                    <button class="btn btn-secondary" onclick="clearNotifications()">Clear All</button>
+                    <button class="btn btn-success" onclick="toggleConnection()">Reconnect</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="mt-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Live Notifications</h2>
+                <div class="flex gap-2">
+                    <button class="btn btn-secondary" onclick="filterNotifications('all')">All</button>
+                    <button class="btn btn-success" onclick="filterNotifications('timesheet')">Timesheets</button>
+                    <button class="btn btn-primary" onclick="filterNotifications('site')">Sites</button>
+                </div>
+            </div>
+            
+            <div class="notification-container" id="notificationContainer">
+                <div class="text-center text-gray-500 py-8">
+                    Waiting for events...
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let eventSource = null;
+        let isConnected = false;
+        let timesheetCount = 0;
+        let siteCount = 0;
+        let totalCount = 0;
+        let currentFilter = 'all';
+
+        // Initialize EventSource connection
+        function initializeEventSource() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            updateConnectionStatus('connecting', 'Connecting...');
+
+            const hubUrl = '{{ mercure_hub_url }}';
+            const topics = [
+                'timesheet.created',
+                'timesheet.updated', 
+                'timesheet.deleted',
+                'site.created',
+                'site.updated',
+                'site.deleted',
+                'test.topic'
+            ];
+
+            const url = new URL(hubUrl);
+            topics.forEach(topic => {
+                url.searchParams.append('topic', topic);
+            });
+
+            eventSource = new EventSource(url.toString());
+
+            eventSource.onopen = function(event) {
+                updateConnectionStatus('connected', 'Connected');
+                isConnected = true;
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleNotification(data);
+                } catch (error) {
+                    console.error('Error parsing event data:', error);
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                updateConnectionStatus('disconnected', 'Disconnected');
+                isConnected = false;
+                console.error('EventSource error:', event);
+            };
+        }
+
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            const textElement = document.getElementById('connectionText');
+            
+            statusElement.className = `status-indicator status-${status}`;
+            textElement.textContent = text;
+        }
+
+        function handleNotification(data) {
+            totalCount++;
+            updateCounters();
+
+            const notificationElement = createNotificationElement(data);
+            const container = document.getElementById('notificationContainer');
+            
+            // Remove "waiting for events" message if present
+            if (container.children.length === 1 && container.children[0].textContent.includes('Waiting for events')) {
+                container.innerHTML = '';
+            }
+
+            // Add new notification at the top
+            container.insertBefore(notificationElement, container.firstChild);
+
+            // Limit to 50 notifications
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+
+            // Apply current filter
+            applyFilter();
+        }
+
+        function createNotificationElement(data) {
+            const div = document.createElement('div');
+            div.className = `notification-item ${data.type} new`;
+            div.dataset.type = data.type;
+            div.dataset.action = data.data.action;
+
+            const timestamp = new Date(data.timestamp).toLocaleString();
+            
+            let content = '';
+            if (data.type === 'timesheet') {
+                content = `
+                    <div class="notification-header">
+                        <span class="notification-title">Timesheet ${data.data.action}</span>
+                        <span class="notification-time">${timestamp}</span>
+                    </div>
+                    <div class="notification-content">
+                        <p><strong>Employee:</strong> ${data.data.employee}</p>
+                        <p><strong>Site:</strong> ${data.data.site}</p>
+                        <p><strong>Client:</strong> ${data.data.client}</p>
+                        <p><strong>Date:</strong> ${data.data.date}</p>
+                        <p><strong>Hours:</strong> ${data.data.hours || 'N/A'}</p>
+                        <p><strong>Status:</strong> ${data.data.status}</p>
+                    </div>
+                `;
+            } else if (data.type === 'site') {
+                content = `
+                    <div class="notification-header">
+                        <span class="notification-title">Site ${data.data.action}</span>
+                        <span class="notification-time">${timestamp}</span>
+                    </div>
+                    <div class="notification-content">
+                        <p><strong>Name:</strong> ${data.data.name}</p>
+                        <p><strong>Client:</strong> ${data.data.client}</p>
+                        <p><strong>Address:</strong> ${data.data.address}</p>
+                        <p><strong>Status:</strong> ${data.data.status}</p>
+                    </div>
+                `;
+            } else if (data.type === 'test') {
+                content = `
+                    <div class="notification-header">
+                        <span class="notification-title">Test Event</span>
+                        <span class="notification-time">${timestamp}</span>
+                    </div>
+                    <div class="notification-content">
+                        <p>${data.message}</p>
+                    </div>
+                `;
+            }
+
+            const badge = `<span class="notification-badge badge-${data.data.action}">${data.data.action}</span>`;
+            
+            div.innerHTML = `
+                ${badge}
+                ${content}
+            `;
+
+            // Remove "new" class after animation
+            setTimeout(() => {
+                div.classList.remove('new');
+            }, 300);
+
+            return div;
+        }
+
+        function updateCounters() {
+            document.getElementById('timesheetCount').textContent = timesheetCount;
+            document.getElementById('siteCount').textContent = siteCount;
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+
+        function filterNotifications(type) {
+            currentFilter = type;
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const notifications = document.querySelectorAll('.notification-item');
+            notifications.forEach(notification => {
+                if (currentFilter === 'all' || notification.dataset.type === currentFilter) {
+                    notification.style.display = 'block';
+                } else {
+                    notification.style.display = 'none';
+                }
+            });
+        }
+
+        function clearNotifications() {
+            const container = document.getElementById('notificationContainer');
+            container.innerHTML = '<div class="text-center text-gray-500 py-8">Waiting for events...</div>';
+            
+            timesheetCount = 0;
+            siteCount = 0;
+            totalCount = 0;
+            updateCounters();
+        }
+
+        function toggleConnection() {
+            if (isConnected) {
+                eventSource.close();
+                updateConnectionStatus('disconnected', 'Disconnected');
+                isConnected = false;
+            } else {
+                initializeEventSource();
+            }
+        }
+
+        async function testEvent() {
+            try {
+                const response = await fetch('{{ path('live_notifications_test') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    console.log('Test event sent successfully');
+                } else {
+                    console.error('Failed to send test event');
+                }
+            } catch (error) {
+                console.error('Error sending test event:', error);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventSource();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>User Management</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Users List</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Roles</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Data will be loaded via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers();
+});
+
+function loadUsers() {
+    fetch('/api/users', {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+        
+        data['hydra:member'].forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.email}</td>
+                <td>${user.firstName}</td>
+                <td>${user.lastName}</td>
+                <td>${user.roles.join(', ')}</td>
+                <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading users:', error);
+    });
+}
+</script>
+{% endblock %}

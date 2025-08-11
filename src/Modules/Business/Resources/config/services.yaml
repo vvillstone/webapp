@@ -1,0 +1,18 @@
+services:
+    # Event Listeners
+    Modules\Business\EventListener\TimesheetEventListener:
+        tags:
+            - { name: 'doctrine.event_subscriber' }
+    
+    Modules\Business\EventListener\SiteEventListener:
+        tags:
+            - { name: 'doctrine.event_subscriber' }
+    
+    # Controllers
+    Modules\Business\Controller\LiveNotificationsController:
+        tags:
+            - { name: 'controller.service_arguments' }
+    
+    Modules\Business\Controller\MercureTestController:
+        tags:
+            - { name: 'controller.service_arguments' }

@@ -1,0 +1,31 @@
+framework:
+    profiler:
+        only_exceptions: false
+    cache:
+        app: cache.adapter.array
+    web_profiler:
+        toolbar: true
+        intercept_redirects: false
+    router:
+        default_uri: http://localhost
+    assets:
+        json_manifest_path: '%kernel.project_dir%/public/build/manifest.json'
+    http_client:
+        scoped_clients:
+            # configure a scoped HTTP client for the API
+            api_client:
+                base_uri: 'https://api.github.com/'
+                headers:
+                    Accept: 'application/vnd.github.v3+json'
+                    User-Agent: 'MyApp/1.0'
+            # an HTTP client scoped to the local API
+            local_api_client:
+                base_uri: 'http://localhost/api/'
+    mailer:
+        dsn: 'smtp://mailhog:1025'
+    cache:
+        app: cache.adapter.array
+    serializer:
+        enable_annotations: true
+        mapping:
+            paths: ['%kernel.project_dir%/config/serialization']

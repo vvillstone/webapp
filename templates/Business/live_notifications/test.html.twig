@@ -1,0 +1,338 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mercure Live Notifications Test{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .test-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        
+        .test-button:hover {
+            background-color: #2563eb;
+        }
+        
+        .test-button.success {
+            background-color: #10b981;
+        }
+        
+        .test-button.success:hover {
+            background-color: #059669;
+        }
+        
+        .test-button.danger {
+            background-color: #ef4444;
+        }
+        
+        .test-button.danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-connected {
+            background-color: #10b981;
+        }
+        
+        .status-disconnected {
+            background-color: #ef4444;
+        }
+        
+        .status-connecting {
+            background-color: #f59e0b;
+        }
+        
+        .notification-log {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+        
+        .log-message {
+            color: #374151;
+        }
+        
+        .log-error {
+            color: #dc2626;
+        }
+        
+        .log-success {
+            color: #059669;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="test-container">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Mercure Live Notifications Test</h1>
+            <p class="text-gray-600">Test the real-time notification system for Timesheet and Site entities</p>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="test-section">
+            <h2 class="text-xl font-semibold mb-4">Connection Status</h2>
+            <div class="flex items-center mb-4">
+                <span class="status-indicator status-connecting" id="connectionStatus"></span>
+                <span id="connectionText">Connecting...</span>
+            </div>
+            <div class="text-sm text-gray-600">
+                <p>Hub URL: <code class="bg-gray-100 px-2 py-1 rounded">{{ mercure_hub_url }}</code></p>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-section">
+            <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+            <div class="mb-4">
+                <h3 class="text-lg font-medium mb-2">Timesheet Events</h3>
+                <button class="test-button success" onclick="testTimesheetCreated()">Test Timesheet Created</button>
+                <button class="test-button" onclick="testTimesheetUpdated()">Test Timesheet Updated</button>
+                <button class="test-button danger" onclick="testTimesheetDeleted()">Test Timesheet Deleted</button>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-lg font-medium mb-2">Site Events</h3>
+                <button class="test-button success" onclick="testSiteCreated()">Test Site Created</button>
+                <button class="test-button" onclick="testSiteUpdated()">Test Site Updated</button>
+                <button class="test-button danger" onclick="testSiteDeleted()">Test Site Deleted</button>
+            </div>
+            <div>
+                <h3 class="text-lg font-medium mb-2">Bulk Tests</h3>
+                <button class="test-button" onclick="testAllEvents()">Test All Events</button>
+                <button class="test-button" onclick="clearLog()">Clear Log</button>
+            </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="test-section">
+            <h2 class="text-xl font-semibold mb-4">Event Log</h2>
+            <div class="notification-log" id="eventLog">
+                <div class="log-entry">
+                    <div class="log-time">Initializing...</div>
+                    <div class="log-message">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="test-section">
+            <h2 class="text-xl font-semibold mb-4">Live Notification Pages</h2>
+            <div class="space-y-2">
+                <a href="{{ path('live_notifications_dashboard') }}" class="block text-blue-600 hover:text-blue-800">
+                    📊 Dashboard (All Events)
+                </a>
+                <a href="{{ path('live_notifications_timesheets') }}" class="block text-blue-600 hover:text-blue-800">
+                    ⏰ Timesheet Notifications
+                </a>
+                <a href="{{ path('live_notifications_sites') }}" class="block text-blue-600 hover:text-blue-800">
+                    🏢 Site Notifications
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let eventSource = null;
+        let isConnected = false;
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('eventLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logTime = document.createElement('div');
+            logTime.className = 'log-time';
+            logTime.textContent = timestamp;
+            
+            const logMessage = document.createElement('div');
+            logMessage.className = `log-message log-${type}`;
+            logMessage.textContent = message;
+            
+            logEntry.appendChild(logTime);
+            logEntry.appendChild(logMessage);
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Limit log entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        function updateConnectionStatus(status, text) {
+            const statusElement = document.getElementById('connectionStatus');
+            const textElement = document.getElementById('connectionText');
+            
+            statusElement.className = `status-indicator status-${status}`;
+            textElement.textContent = text;
+        }
+
+        function initializeEventSource() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            updateConnectionStatus('connecting', 'Connecting...');
+            log('Initializing EventSource connection...');
+
+            const hubUrl = '{{ mercure_hub_url }}';
+            const topics = [
+                'timesheet.created',
+                'timesheet.updated', 
+                'timesheet.deleted',
+                'site.created',
+                'site.updated',
+                'site.deleted'
+            ];
+
+            const url = new URL(hubUrl);
+            topics.forEach(topic => {
+                url.searchParams.append('topic', topic);
+            });
+
+            eventSource = new EventSource(url.toString());
+
+            eventSource.onopen = function(event) {
+                updateConnectionStatus('connected', 'Connected');
+                isConnected = true;
+                log('EventSource connection established', 'success');
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    log(`Received ${data.type} event: ${data.data.action}`, 'success');
+                } catch (error) {
+                    log(`Error parsing event data: ${error.message}`, 'error');
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                updateConnectionStatus('disconnected', 'Disconnected');
+                isConnected = false;
+                log('EventSource connection error', 'error');
+            };
+        }
+
+        async function testEvent(endpoint, description) {
+            try {
+                log(`Sending test event: ${description}...`);
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    log(`✅ ${description} - Event sent successfully`, 'success');
+                } else {
+                    log(`❌ ${description} - Failed to send event`, 'error');
+                }
+            } catch (error) {
+                log(`❌ ${description} - Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testTimesheetCreated() {
+            testEvent('{{ path('mercure_test_timesheet_created') }}', 'Timesheet Created');
+        }
+
+        function testTimesheetUpdated() {
+            testEvent('{{ path('mercure_test_timesheet_updated') }}', 'Timesheet Updated');
+        }
+
+        function testTimesheetDeleted() {
+            testEvent('{{ path('mercure_test_timesheet_created') }}', 'Timesheet Deleted (using created endpoint)');
+        }
+
+        function testSiteCreated() {
+            testEvent('{{ path('mercure_test_site_created') }}', 'Site Created');
+        }
+
+        function testSiteUpdated() {
+            testEvent('{{ path('mercure_test_site_updated') }}', 'Site Updated');
+        }
+
+        function testSiteDeleted() {
+            testEvent('{{ path('mercure_test_site_created') }}', 'Site Deleted (using created endpoint)');
+        }
+
+        function testAllEvents() {
+            testEvent('{{ path('mercure_test_all_events') }}', 'All Events');
+        }
+
+        function clearLog() {
+            const logContainer = document.getElementById('eventLog');
+            logContainer.innerHTML = '<div class="log-entry"><div class="log-time">Log cleared</div><div class="log-message">Event log cleared</div></div>';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, initializing EventSource...');
+            initializeEventSource();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+{% endblock %}

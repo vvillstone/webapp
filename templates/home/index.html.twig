@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Symfony Modular App{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+            Bienvenue dans Symfony Modular App
+        </h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Une application Symfony 6 modulaire avec API Platform, Doctrine, Mercure, et Docker optimisé pour Synology.
+        </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <!-- API Platform -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-blue-100 rounded-lg p-3">
+                    <i class="fas fa-code text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">API Platform</h3>
+            </div>
+            <p class="text-gray-600 mb-4">API REST automatique avec documentation interactive et validation des données.</p>
+            <a href="/api/docs" class="text-blue-600 hover:text-blue-800 font-medium">
+                Voir la documentation <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Gestion Utilisateurs -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-green-100 rounded-lg p-3">
+                    <i class="fas fa-users text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">Gestion Utilisateurs</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Gestion complète des utilisateurs, employés et clients avec rôles et permissions.</p>
+            <a href="{{ path('admin_users_index') }}" class="text-green-600 hover:text-green-800 font-medium">
+                Gérer les utilisateurs <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Architecture Modulaire -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-purple-100 rounded-lg p-3">
+                    <i class="fas fa-puzzle-piece text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">Architecture Modulaire</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Structure modulaire avec bundles métiers extensibles et système de hooks.</p>
+            <a href="#" class="text-purple-600 hover:text-purple-800 font-medium">
+                En savoir plus <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Docker Synology -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-orange-100 rounded-lg p-3">
+                    <i class="fas fa-docker text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">Docker Synology</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Configuration Docker optimisée pour Synology NAS avec volumes persistants.</p>
+            <a href="#" class="text-orange-600 hover:text-orange-800 font-medium">
+                Configuration <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Notifications Temps Réel -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-red-100 rounded-lg p-3">
+                    <i class="fas fa-bell text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">Notifications Temps Réel</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Système de notifications en temps réel avec Mercure Hub et WebSockets.</p>
+            <a href="#" class="text-red-600 hover:text-red-800 font-medium">
+                Tester <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Analytics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-indigo-100 rounded-lg p-3">
+                    <i class="fas fa-chart-line text-indigo-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-4">Analytics</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Suivi et analyse des données avec tableaux de bord et rapports.</p>
+            <a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                Voir les statistiques <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Actions Rapides</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <a href="{{ path('admin_users_index') }}" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-users text-2xl mb-2"></i>
+                <div class="font-semibold">Utilisateurs</div>
+            </a>
+            <a href="/api/docs" class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-book text-2xl mb-2"></i>
+                <div class="font-semibold">API Docs</div>
+            </a>
+            <a href="/health" class="bg-yellow-600 hover:bg-yellow-700 text-white p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-heartbeat text-2xl mb-2"></i>
+                <div class="font-semibold">Health Check</div>
+            </a>
+            <a href="#" class="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg text-center transition duration-200">
+                <i class="fas fa-cog text-2xl mb-2"></i>
+                <div class="font-semibold">Configuration</div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration EspoCRM - Administration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-active { background-color: #28a745; }
+        .status-inactive { background-color: #dc3545; }
+        .log-entry {
+            border-left: 3px solid #007bff;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        .log-success { border-left-color: #28a745; }
+        .log-error { border-left-color: #dc3545; }
+        .log-warning { border-left-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#config">
+                                <i class="fas fa-cog"></i> Configuration
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#sync">
+                                <i class="fas fa-sync"></i> Synchronisation
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#logs">
+                                <i class="fas fa-list"></i> Logs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="#stats">
+                                <i class="fas fa-chart-bar"></i> Statistiques
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-plug"></i> Configuration EspoCRM
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="testConnection()">
+                                <i class="fas fa-wifi"></i> Tester la connexion
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="triggerFullSync()">
+                                <i class="fas fa-sync"></i> Synchronisation complète
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Section -->
+                <section id="config" class="config-section">
+                    <h3><i class="fas fa-cog"></i> Configuration de base</h3>
+                    <form id="espocrmConfigForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="apiUrl" class="form-label">URL EspoCRM *</label>
+                                    <input type="url" class="form-control" id="apiUrl" name="api_url" required>
+                                    <div class="form-text">Ex: https://espocrm.example.com</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Nom d'utilisateur *</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="apiKey" class="form-label">Clé API *</label>
+                                    <input type="password" class="form-control" id="apiKey" name="api_key" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="syncDirection" class="form-label">Direction de synchronisation</label>
+                                    <select class="form-select" id="syncDirection" name="sync_direction">
+                                        <option value="bidirectional">Bidirectionnelle</option>
+                                        <option value="unidirectional_out">Sortante uniquement</option>
+                                        <option value="unidirectional_in">Entrante uniquement</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="webhookUrl" class="form-label">URL Webhook</label>
+                                    <input type="url" class="form-control" id="webhookUrl" name="webhook_url">
+                                    <div class="form-text">URL pour recevoir les webhooks EspoCRM</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="webhookSecret" class="form-label">Secret Webhook</label>
+                                    <input type="password" class="form-control" id="webhookSecret" name="webhook_secret">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
+                                    <label class="form-check-label" for="isActive">Configuration active</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="syncEnabled" name="sync_enabled" checked>
+                                    <label class="form-check-label" for="syncEnabled">Synchronisation activée</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="webhookEnabled" name="webhook_enabled" checked>
+                                    <label class="form-check-label" for="webhookEnabled">Webhooks activés</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Sauvegarder la configuration
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Synchronisation Section -->
+                <section id="sync" class="config-section">
+                    <h3><i class="fas fa-sync"></i> Synchronisation</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Synchronisation manuelle</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="clientId" class="form-label">ID Client</label>
+                                        <input type="number" class="form-control" id="clientId" placeholder="ID du client à synchroniser">
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary" onclick="syncClient()">
+                                        <i class="fas fa-upload"></i> Synchroniser vers EspoCRM
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Statut de la synchronisation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="syncStatus">
+                                        <p><strong>Dernière synchronisation:</strong> <span id="lastSync">-</span></p>
+                                        <p><strong>Statut:</strong> <span id="syncStatusText">-</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Statistics Section -->
+                <section id="stats" class="config-section">
+                    <h3><i class="fas fa-chart-bar"></i> Statistiques</h3>
+                    <div class="row" id="statsContainer">
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title" id="totalSyncs">-</h5>
+                                    <p class="card-text">Synchronisations totales</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title text-success" id="successfulSyncs">-</h5>
+                                    <p class="card-text">Synchronisations réussies</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title text-danger" id="failedSyncs">-</h5>
+                                    <p class="card-text">Synchronisations échouées</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info" id="successRate">-</h5>
+                                    <p class="card-text">Taux de succès</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Logs Section -->
+                <section id="logs" class="config-section">
+                    <h3><i class="fas fa-list"></i> Logs de synchronisation</h3>
+                    <div class="mb-3">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary" onclick="loadLogs()">Actualiser</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearLogs()">Effacer</button>
+                        </div>
+                    </div>
+                    <div id="logsContainer">
+                        <!-- Logs will be loaded here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Load configuration on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            loadStats();
+            loadLogs();
+        });
+
+        // Load EspoCRM configuration
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/espocrm/config');
+                const data = await response.json();
+                
+                if (data.success && data.config) {
+                    document.getElementById('apiUrl').value = data.config.api_url || '';
+                    document.getElementById('username').value = data.config.username || '';
+                    document.getElementById('webhookUrl').value = data.config.webhook_url || '';
+                    document.getElementById('syncDirection').value = data.config.sync_direction || 'bidirectional';
+                    document.getElementById('isActive').checked = data.config.is_active;
+                    document.getElementById('syncEnabled').checked = data.config.sync_enabled;
+                    document.getElementById('webhookEnabled').checked = data.config.webhook_enabled;
+                    
+                    // Update last sync info
+                    if (data.config.last_sync_at) {
+                        document.getElementById('lastSync').textContent = new Date(data.config.last_sync_at).toLocaleString();
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de la configuration:', error);
+            }
+        }
+
+        // Save configuration
+        document.getElementById('espocrmConfigForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const config = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/espocrm/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Configuration sauvegardée avec succès');
+                    loadConfig();
+                } else {
+                    alert('Erreur: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                alert('Erreur lors de la sauvegarde de la configuration');
+            }
+        });
+
+        // Test connection
+        async function testConnection() {
+            try {
+                const response = await fetch('/api/espocrm/test-connection', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Connexion réussie!');
+                } else {
+                    alert('Échec de la connexion: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erreur lors du test de connexion:', error);
+                alert('Erreur lors du test de connexion');
+            }
+        }
+
+        // Trigger full sync
+        async function triggerFullSync() {
+            if (!confirm('Déclencher une synchronisation complète?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/espocrm/sync/full', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ async: true })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Synchronisation complète programmée');
+                    setTimeout(loadStats, 2000);
+                } else {
+                    alert('Erreur: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                console.error('Erreur lors de la synchronisation:', error);
+                alert('Erreur lors de la synchronisation');
+            }
+        }
+
+        // Sync specific client
+        async function syncClient() {
+            const clientId = document.getElementById('clientId').value;
+            if (!clientId) {
+                alert('Veuillez saisir un ID de client');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/espocrm/sync/client/${clientId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ async: true })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Synchronisation du client programmée');
+                    setTimeout(loadStats, 2000);
+                } else {
+                    alert('Erreur: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                console.error('Erreur lors de la synchronisation:', error);
+                alert('Erreur lors de la synchronisation');
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/espocrm/sync/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('totalSyncs').textContent = stats.total_syncs;
+                    document.getElementById('successfulSyncs').textContent = stats.successful_syncs;
+                    document.getElementById('failedSyncs').textContent = stats.failed_syncs;
+                    document.getElementById('successRate').textContent = stats.success_rate + '%';
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des statistiques:', error);
+            }
+        }
+
+        // Load logs
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/espocrm/logs?limit=20');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('logsContainer');
+                    container.innerHTML = '';
+                    
+                    data.logs.forEach(log => {
+                        const logEntry = document.createElement('div');
+                        logEntry.className = `log-entry log-${log.status}`;
+                        logEntry.innerHTML = `
+                            <div class="d-flex justify-content-between">
+                                <strong>${log.sync_type}</strong>
+                                <small>${new Date(log.created_at).toLocaleString()}</small>
+                            </div>
+                            <div>${log.message || 'Aucun message'}</div>
+                            <small class="text-muted">
+                                ${log.entity_type ? `Type: ${log.entity_type}` : ''}
+                                ${log.entity_id ? ` | ID: ${log.entity_id}` : ''}
+                                ${log.espocrm_id ? ` | EspoCRM ID: ${log.espocrm_id}` : ''}
+                                ${log.duration ? ` | Durée: ${log.duration}ms` : ''}
+                            </small>
+                        `;
+                        container.appendChild(logEntry);
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement des logs:', error);
+            }
+        }
+
+        // Clear logs (placeholder function)
+        function clearLogs() {
+            if (confirm('Effacer tous les logs?')) {
+                // This would require a backend endpoint to clear logs
+                alert('Fonctionnalité à implémenter');
+            }
+        }
+    </script>
+</body>
+</html>
