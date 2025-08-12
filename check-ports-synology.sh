@@ -1,3 +1,90 @@
+#!/bin/bash
+
+# Script de vérification des ports pour NAS Synology
+# Vérifie les ports disponibles et configure automatiquement
+
+set -e
+
+echo "=========================================="
+echo "Vérification des ports - NAS Synology"
+echo "=========================================="
+
+# Couleurs pour les messages
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Fonction pour afficher les messages
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Fonction pour vérifier si un port est disponible
+check_port() {
+    local port=$1
+    if netstat -tuln | grep -q ":$port "; then
+        return 1  # Port utilisé
+    else
+        return 0  # Port disponible
+    fi
+}
+
+# Fonction pour trouver un port disponible
+find_available_port() {
+    local start_port=$1
+    local port=$start_port
+    
+    while ! check_port $port; do
+        port=$((port + 1))
+        if [ $port -gt $((start_port + 100)) ]; then
+            print_error "Aucun port disponible trouvé après $start_port"
+            return 1
+        fi
+    done
+    
+    echo $port
+}
+
+print_status "Vérification des ports utilisés par DSM..."
+
+# Vérifier les ports DSM
+DSM_PORTS=(80 443 5000 5001 8080 8443)
+
+echo ""
+echo "Ports utilisés par DSM :"
+for port in "${DSM_PORTS[@]}"; do
+    if check_port $port; then
+        echo -e "  ${GREEN}✓${NC} Port $port : Disponible"
+    else
+        echo -e "  ${RED}✗${NC} Port $port : Utilisé par DSM"
+    fi
+done
+
+echo ""
+print_status "Recherche de ports alternatifs..."
+
+# Chercher des ports alternatifs
+HTTP_PORT=$(find_available_port 8080)
+HTTPS_PORT=$(find_available_port 8443)
+
+if [ $? -eq 0 ]; then
+    print_status "Ports alternatifs trouvés :"
+    echo "  HTTP  : $HTTP_PORT"
+    echo "  HTTPS : $HTTPS_PORT"
+    
+    # Créer un docker-compose avec les ports alternatifs
+    print_status "Création du docker-compose avec ports alternatifs..."
+    
+    cat > docker-compose.synology.offline.yml << EOF
 version: '3.8'
 
 services:
@@ -64,8 +151,8 @@ services:
     container_name: symfony_nginx_synology
     restart: unless-stopped
     ports:
-      - "8080:80"  # Port HTTP alternatif
-      - "8443:443" # Port HTTPS alternatif
+      - "$HTTP_PORT:80"   # Port HTTP alternatif
+      - "$HTTPS_PORT:443" # Port HTTPS alternatif
     volumes:
       - /volume1/docker/symfony/app:/var/www/html
     depends_on:
@@ -116,3 +203,30 @@ services:
 networks:
   symfony_network:
     driver: bridge
+EOF
+
+    print_status "Docker-compose créé avec les ports alternatifs !"
+    
+    echo ""
+    echo "=========================================="
+    echo "Configuration terminée !"
+    echo "=========================================="
+    echo ""
+    echo "Ports configurés :"
+    echo "  Application HTTP  : http://VOTRE_IP_NAS:$HTTP_PORT"
+    echo "  Application HTTPS : https://VOTRE_IP_NAS:$HTTPS_PORT"
+    echo "  Interface MailHog : http://VOTRE_IP_NAS:8025"
+    echo "  Mercure Hub       : http://VOTRE_IP_NAS:3000"
+    echo ""
+    echo "Pour démarrer les services :"
+    echo "  ./start-synology-offline.sh"
+    echo ""
+    
+else
+    print_error "Impossible de trouver des ports disponibles"
+    exit 1
+fi
+
+echo "=========================================="
+echo "Vérification terminée !"
+echo "=========================================="

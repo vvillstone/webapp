@@ -29,6 +29,13 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Vérifier les ports avant de démarrer
+print_status "Vérification des ports..."
+if [ -f "check-ports-synology.sh" ]; then
+    chmod +x check-ports-synology.sh
+    ./check-ports-synology.sh
+fi
+
 # Arrêter les services existants
 print_status "Arrêt des services existants..."
 docker-compose -f docker-compose.synology.offline.yml down 2>/dev/null || true
