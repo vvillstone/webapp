@@ -22,7 +22,7 @@ api_platform:
             enabled: true
             items_per_page_parameter_name: itemsPerPage
     mapping:
-        paths: ['%kernel.project_dir%/src/Modules/Business/Entity', '%kernel.project_dir%/src/Modules/User/Entity', '%kernel.project_dir%/src/Modules/Core/Entity']
+        paths: ['%kernel.project_dir%/src/Entity']
     swagger:
         api_keys:
             JWT:

@@ -7,7 +7,7 @@ security:
     providers:
         app_user_provider:
             entity:
-                class: Modules\User\Entity\User
+                class: App\Entity\User
                 property: email
     
     firewalls:
@@ -28,11 +28,12 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            form_login:
-                login_path: app_login
-                check_path: app_login
-            logout:
-                path: app_logout
+            # Disabled form_login and logout for sessionless setup
+            # form_login:
+            #     login_path: app_login
+            #     check_path: app_login
+            # logout:
+            #     path: app_logout
     
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }

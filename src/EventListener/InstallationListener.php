@@ -4,6 +4,7 @@ namespace App\EventListener;
 
 use App\Service\InstallationService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\RouterInterface;
@@ -38,7 +39,8 @@ class InstallationListener implements EventSubscriberInterface
         // Si l'application n'est pas installée et qu'on n'est pas déjà sur une page d'installation
         if (!$this->installationService->isInstalled() && !$this->isInstallRoute($path)) {
             // Rediriger vers l'installation
-            $response = $this->router->redirectToRoute('app_install');
+            $url = $this->router->generate('app_install');
+            $response = new RedirectResponse($url);
             $event->setResponse($response);
         }
     }

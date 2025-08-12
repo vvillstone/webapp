@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 #[AsCommand(
     name: 'app:reset-installation',
@@ -18,14 +19,16 @@ class ResetInstallationCommand extends Command
 {
     private InstallationService $installationService;
     private Filesystem $filesystem;
+    private ParameterBagInterface $parameterBag;
     private string $projectDir;
 
-    public function __construct(InstallationService $installationService, Filesystem $filesystem, string $projectDir)
+    public function __construct(InstallationService $installationService, Filesystem $filesystem, ParameterBagInterface $parameterBag)
     {
         parent::__construct();
         $this->installationService = $installationService;
         $this->filesystem = $filesystem;
-        $this->projectDir = $projectDir;
+        $this->parameterBag = $parameterBag;
+        $this->projectDir = $this->parameterBag->get('kernel.project_dir');
     }
 
     protected function configure(): void
