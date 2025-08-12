@@ -26,11 +26,13 @@ docker system prune -f
 
 ### Étape 2 : Utiliser la version offline
 ```bash
-# Rendre le script exécutable
+# Option A : Installation complète
 chmod +x install-synology-offline.sh
-
-# Lancer l'installation offline
 ./install-synology-offline.sh
+
+# Option B : Démarrage rapide (si déjà installé)
+chmod +x start-synology-offline.sh
+./start-synology-offline.sh
 ```
 
 ## 🎯 Comment fonctionne la version offline
@@ -190,3 +192,17 @@ docker-compose -f docker-compose.synology.simple.yml down
 ---
 
 **💡 Recommandation** : La version offline (`install-synology-offline.sh`) est la solution la plus fiable pour les problèmes DNS sévères sur Synology.
+
+## 🚀 Solution immédiate pour votre erreur
+
+Pour résoudre l'erreur "Bind mount failed", utilisez le script de démarrage rapide :
+
+```bash
+# Rendre le script exécutable
+chmod +x start-synology-offline.sh
+
+# Lancer le démarrage rapide
+./start-synology-offline.sh
+```
+
+Ce script corrige automatiquement les problèmes de volumes manquants et démarre les services.
