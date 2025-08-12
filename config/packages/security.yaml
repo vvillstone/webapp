@@ -14,6 +14,9 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        install:
+            pattern: ^/install
+            security: false
         login:
             pattern: ^/api/login
             stateless: true
@@ -36,6 +39,7 @@ security:
             #     path: app_logout
     
     access_control:
+        - { path: ^/install, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/docs, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
