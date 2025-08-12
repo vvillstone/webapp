@@ -24,22 +24,22 @@ services:
     # please note that last definitions always *replace* previous ones
 
     # Configuration Redis
-    Redis:
-        class: Redis
-        calls:
-            - method: connect
-              arguments:
-                  - '%env(REDIS_HOST)%'
-                  - '%env(int:REDIS_PORT)%'
-            - method: select
-              arguments:
-                  - '%env(int:REDIS_DB)%'
-        tags:
-            - { name: 'container.service_subscriber' }
+    # Redis:
+    #     class: Redis
+    #     calls:
+    #         - method: connect
+    #           arguments:
+    #               - '%env(REDIS_HOST)%'
+    #               - '%env(int:REDIS_PORT)%'
+    #         - method: select
+    #           arguments:
+    #               - '%env(int:REDIS_DB)%'
+    #     tags:
+    #         - { name: 'container.service_subscriber' }
 
     # Configuration des services pour les modules
-    Modules\:
-        resource: '../src/Modules/*/'
-        exclude:
-            - '../src/Modules/*/Entity/'
-            - '../src/Modules/*/Tests/'
+    # Modules\:
+    #     resource: '../src/Modules/*/'
+    #     exclude:
+    #         - '../src/Modules/*/Entity/'
+    #         - '../src/Modules/*/Tests/'

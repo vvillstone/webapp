@@ -3,9 +3,9 @@ framework:
         only_exceptions: false
     cache:
         app: cache.adapter.array
-    web_profiler:
-        toolbar: true
-        intercept_redirects: false
+    # web_profiler:
+    #     toolbar: true
+    #     intercept_redirects: false
     router:
         default_uri: http://localhost
     assets:
@@ -23,8 +23,6 @@ framework:
                 base_uri: 'http://localhost/api/'
     mailer:
         dsn: 'smtp://mailhog:1025'
-    cache:
-        app: cache.adapter.array
     serializer:
         enable_annotations: true
         mapping:

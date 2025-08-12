@@ -346,10 +346,10 @@ class Invoice
         return $this->status === 'paid';
     }
 
-    public function isOverdue(): bool
-    {
-        return $this->status === 'overdue';
-    }
+    // public function isOverdue(): bool
+    // {
+    //     return $this->status === 'overdue';
+    // }
 
     public function isCancelled(): bool
     {

@@ -84,8 +84,8 @@ composer --version
 
 ### 2. Cloner le projet
 ```bash
-git clone <votre-repo-url>
-cd <nom-du-projet>
+git clone https://github.com/vvillstone/webapp
+cd protti-manager
 ```
 
 ### 3. Configuration
@@ -97,7 +97,7 @@ cp .env.example .env
 ### 4. Modifier la configuration de base de données
 Éditer le fichier `.env` :
 ```env
-DATABASE_URL="mysql://root:@127.0.0.1:3306/symfony_modular_app"
+DATABASE_URL="mysql://root:@127.0.0.1:3306/protti_manager"
 ```
 
 ### 5. Installation des dépendances

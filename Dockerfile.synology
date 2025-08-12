@@ -1,0 +1,127 @@
+# Dockerfile optimisé pour NAS Synology
+# Multi-stage build pour réduire la taille de l'image finale
+
+# Stage 1: Build stage
+FROM php:8.2-fpm AS builder
+
+# Installation des dépendances système pour la compilation
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    libicu-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
+    libxpm-dev \
+    libgd-dev \
+    librabbitmq-dev \
+    libssl-dev \
+    pkg-config \
+    supervisor \
+    cron \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configuration et installation des extensions PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure opcache --enable-opcache \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        intl \
+        zip \
+        opcache
+
+# Installation des extensions PECL
+RUN pecl install redis amqp && docker-php-ext-enable redis amqp
+
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copie des fichiers de configuration
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY docker/php/php.synology.ini /usr/local/etc/php/conf.d/synology.ini
+COPY docker/php/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Stage 2: Production stage
+FROM php:8.2-fpm-alpine
+
+# Installation des dépendances runtime
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng \
+    libxml2 \
+    libzip \
+    icu-libs \
+    freetype \
+    libjpeg-turbo \
+    libwebp \
+    libxpm \
+    gd \
+    supervisor \
+    dcron \
+    mysql-client \
+    && apk add --no-cache --virtual .build-deps \
+        libpng-dev \
+        libxml2-dev \
+        libzip-dev \
+        icu-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libwebp-dev \
+        libxpm-dev \
+        gd-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure opcache --enable-opcache \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        intl \
+        zip \
+        opcache \
+    && pecl install redis amqp \
+    && docker-php-ext-enable redis amqp \
+    && apk del .build-deps
+
+# Copie de Composer depuis le stage builder
+COPY --from=builder /usr/bin/composer /usr/bin/composer
+
+# Copie des configurations
+COPY --from=builder /usr/local/etc/php/php.ini /usr/local/etc/php/php.ini
+COPY --from=builder /usr/local/etc/php/conf.d/synology.ini /usr/local/etc/php/conf.d/synology.ini
+COPY --from=builder /etc/supervisor/conf.d/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Script de démarrage personnalisé
+COPY docker/php/start-synology.sh /usr/local/bin/start-synology.sh
+RUN chmod +x /usr/local/bin/start-synology.sh
+
+# Configuration des permissions pour Synology
+RUN addgroup -g 1000 www-data && \
+    adduser -u 1000 -G www-data -s /bin/sh -D www-data && \
+    chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www
+
+# Répertoire de travail
+WORKDIR /var/www/html
+
+# Exposition du port
+EXPOSE 9000
+
+# Commande par défaut
+CMD ["/usr/local/bin/start-synology.sh"]

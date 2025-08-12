@@ -13,14 +13,13 @@ return [
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true],
     Symfony\Bundle\MonologBundle\MonologBundle::class => ['all' => true],
     Symfony\Bundle\DebugBundle\DebugBundle::class => ['dev' => true, 'test' => true],
-    Symfony\Bundle\MessengerBundle\MessengerBundle::class => ['all' => true],
+    // Symfony\Bundle\MessengerBundle\MessengerBundle::class => ['all' => true],
     Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
-    
-            // Modules
-        Modules\Core\CoreBundle::class => ['all' => true],
-        Modules\User\UserBundle::class => ['all' => true],
-        Modules\Api\ApiBundle::class => ['all' => true],
-        Modules\Business\BusinessBundle::class => ['all' => true],
-        Modules\Notification\NotificationBundle::class => ['all' => true],
-        Modules\Analytics\AnalyticsBundle::class => ['all' => true],
+    // Modules\Core\CoreBundle::class => ['all' => true],
+    // Modules\User\UserBundle::class => ['all' => true],
+    // Modules\Api\ApiBundle::class => ['all' => true],
+    // Modules\Business\BusinessBundle::class => ['all' => true],
+    // Modules\Notification\NotificationBundle::class => ['all' => true],
+    // Modules\Analytics\AnalyticsBundle::class => ['all' => true],
+    Twig\Extra\TwigExtraBundle\TwigExtraBundle::class => ['all' => true],
 ];

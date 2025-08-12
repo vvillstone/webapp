@@ -27,7 +27,7 @@ services:
   # PHP-FPM optimisé pour Synology
   php:
     build:
-      context: ./docker/php
+      context: .
       dockerfile: Dockerfile.synology
     container_name: symfony_php_synology
     restart: unless-stopped
@@ -109,7 +109,7 @@ services:
   # Worker pour les tâches asynchrones
   worker:
     build:
-      context: ./docker/php
+      context: .
       dockerfile: Dockerfile.synology
     container_name: symfony_worker_synology
     restart: unless-stopped

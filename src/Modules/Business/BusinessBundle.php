@@ -11,7 +11,7 @@ class BusinessBundle extends Bundle
         return \dirname(__DIR__) . '/Business';
     }
     
-    public function getContainerExtension()
+    public function getContainerExtension(): ?\Symfony\Component\DependencyInjection\Extension\ExtensionInterface
     {
         if (null === $this->extension) {
             $this->extension = $this->createContainerExtension();
@@ -20,7 +20,7 @@ class BusinessBundle extends Bundle
         return $this->extension;
     }
     
-    protected function createContainerExtension()
+    protected function createContainerExtension(): ?\Symfony\Component\DependencyInjection\Extension\ExtensionInterface
     {
         return new DependencyInjection\BusinessExtension();
     }
