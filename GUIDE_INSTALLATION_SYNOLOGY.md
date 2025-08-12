@@ -38,6 +38,7 @@ cd symfony-app
 
 ### Étape 3 : Installation automatisée
 
+**Option A : Installation standard (si pas de problème DNS)**
 ```bash
 # Rendre le script exécutable
 chmod +x install-synology.sh
@@ -46,10 +47,20 @@ chmod +x install-synology.sh
 ./install-synology.sh
 ```
 
+**Option B : Installation simplifiée (si problème DNS)**
+```bash
+# Rendre le script exécutable
+chmod +x install-synology-simple.sh
+
+# Lancer l'installation simplifiée
+./install-synology-simple.sh
+```
+
 ### Étape 4 : Configuration manuelle (optionnel)
 
 Si vous préférez une installation manuelle :
 
+**Version standard :**
 ```bash
 # 1. Créer les répertoires
 mkdir -p /volume1/docker/symfony/{app,mysql,redis,mercure,nginx/{ssl,logs},php/{conf.d}}
@@ -62,6 +73,21 @@ docker-compose -f docker-compose.synology.yml build
 
 # 4. Démarrer les services
 docker-compose -f docker-compose.synology.yml up -d
+```
+
+**Version simplifiée (si problème DNS) :**
+```bash
+# 1. Créer les répertoires
+mkdir -p /volume1/docker/symfony/{app,mysql,redis,mercure,nginx/{ssl,logs},php/{conf.d}}
+
+# 2. Copier la configuration
+cp env.synology.example .env
+
+# 3. Construire l'image
+docker-compose -f docker-compose.synology.simple.yml build
+
+# 4. Démarrer les services
+docker-compose -f docker-compose.synology.simple.yml up -d
 ```
 
 ## Configuration
@@ -214,19 +240,44 @@ chmod -R 755 /volume1/docker/symfony
 chown -R 1000:1000 /volume1/docker/symfony
 ```
 
-**2. Conteneur ne démarre pas**
+**2. Problème de DNS (erreur "Temporary failure resolving")**
 ```bash
-# Voir les logs détaillés
+# Solution 1 : Utiliser la version simplifiée
+./install-synology-simple.sh
+
+# Solution 2 : Configurer DNS manuellement
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+# Solution 3 : Configurer Docker DNS
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json << EOF
+{
+    "dns": ["8.8.8.8", "8.8.4.4"]
+}
+EOF
+systemctl restart docker
+```
+
+**3. Conteneur ne démarre pas**
+```bash
+# Voir les logs détaillés (version standard)
 docker-compose -f docker-compose.synology.yml logs php
+
+# Voir les logs détaillés (version simplifiée)
+docker-compose -f docker-compose.synology.simple.yml logs php
 ```
 
-**3. Base de données inaccessible**
+**4. Base de données inaccessible**
 ```bash
-# Vérifier la connexion
+# Vérifier la connexion (version standard)
 docker-compose -f docker-compose.synology.yml exec database mysql -u symfony_user -psymfony_password symfony_app
+
+# Vérifier la connexion (version simplifiée)
+docker-compose -f docker-compose.synology.simple.yml exec database mysql -u symfony_user -psymfony_password symfony_app
 ```
 
-**4. Problème de mémoire**
+**5. Problème de mémoire**
 - Augmenter la limite mémoire dans DSM
 - Optimiser les paramètres PHP dans `.env`
 

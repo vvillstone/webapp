@@ -1,0 +1,80 @@
+# Dockerfile simplifié pour NAS Synology
+# Version optimisée pour éviter les problèmes de DNS
+
+FROM php:8.2-fpm
+
+# Configuration DNS et miroirs pour Synology
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+# Mise à jour des sources APT avec des miroirs fiables
+RUN echo "deb http://ftp.fr.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb http://ftp.fr.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list && \
+    echo "deb http://ftp.fr.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list
+
+# Installation des dépendances système
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    libicu-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libwebp-dev \
+    libxpm-dev \
+    libgd-dev \
+    librabbitmq-dev \
+    libssl-dev \
+    pkg-config \
+    supervisor \
+    cron \
+    mysql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configuration et installation des extensions PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure opcache --enable-opcache \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        intl \
+        zip \
+        opcache
+
+# Installation des extensions PECL
+RUN pecl install redis amqp && docker-php-ext-enable redis amqp
+
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copie des fichiers de configuration
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY docker/php/php.synology.ini /usr/local/etc/php/conf.d/synology.ini
+COPY docker/php/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Script de démarrage personnalisé
+COPY docker/php/start-synology.sh /usr/local/bin/start-synology.sh
+RUN chmod +x /usr/local/bin/start-synology.sh
+
+# Configuration des permissions pour Synology
+RUN chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www
+
+# Répertoire de travail
+WORKDIR /var/www/html
+
+# Exposition du port
+EXPOSE 9000
+
+# Commande par défaut
+CMD ["/usr/local/bin/start-synology.sh"]

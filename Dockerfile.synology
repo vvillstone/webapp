@@ -4,6 +4,15 @@
 # Stage 1: Build stage
 FROM php:8.2-fpm AS builder
 
+# Configuration DNS et miroirs pour Synology
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+# Mise à jour des sources APT avec des miroirs fiables
+RUN echo "deb http://ftp.fr.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb http://ftp.fr.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list && \
+    echo "deb http://ftp.fr.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list
+
 # Installation des dépendances système pour la compilation
 RUN apt-get update && apt-get install -y \
     git \
@@ -56,8 +65,16 @@ COPY docker/php/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.c
 # Stage 2: Production stage
 FROM php:8.2-fpm-alpine
 
+# Configuration DNS pour Alpine
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+
+# Mise à jour des sources Alpine avec des miroirs fiables
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/main" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.18/community" >> /etc/apk/repositories
+
 # Installation des dépendances runtime
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     git \
     curl \
     libpng \
