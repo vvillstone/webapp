@@ -1,0 +1,77 @@
+{% extends 'install/base.html.twig' %}
+
+{% block title %}Vérification système - Installation{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2><i class="fas fa-server me-2"></i>Vérification des prérequis système</h2>
+    <p class="text-muted">L'assistant va vérifier que votre serveur répond aux exigences minimales pour installer l'application.</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% for check in systemCheck %}
+            <div class="check-item {% if check.status %}success{% else %}danger{% endif %}">
+                <div class="check-icon">
+                    {% if check.status %}
+                        <i class="fas fa-check-circle"></i>
+                    {% else %}
+                        <i class="fas fa-times-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">{{ check.name }}</h6>
+                    <p class="mb-1 text-muted">{{ check.message }}</p>
+                    <small class="text-muted">
+                        <strong>Requis :</strong> {{ check.required }} | 
+                        <strong>Actuel :</strong> {{ check.current }}
+                    </small>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        {% set allChecksPassed = systemCheck|filter(check => not check.status)|length == 0 %}
+        
+        {% if allChecksPassed %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Excellent !</strong> Tous les prérequis sont satisfaits. Vous pouvez continuer l'installation.
+            </div>
+            <a href="{{ path('app_install_database') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-arrow-right me-2"></i>Continuer vers la configuration de la base de données
+            </a>
+        {% else %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Attention !</strong> Certains prérequis ne sont pas satisfaits. Veuillez corriger ces problèmes avant de continuer.
+            </div>
+            <div class="mt-3">
+                <h5>Comment résoudre ces problèmes :</h5>
+                <div class="row text-start">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-code me-2"></i>Version PHP</h6>
+                        <p class="small text-muted">Assurez-vous d'avoir PHP 8.1 ou supérieur installé sur votre serveur.</p>
+                        
+                        <h6><i class="fas fa-puzzle-piece me-2"></i>Extensions PHP</h6>
+                        <p class="small text-muted">Activez les extensions PHP requises dans votre fichier php.ini.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-folder me-2"></i>Permissions</h6>
+                        <p class="small text-muted">Donnez les permissions d'écriture aux dossiers var/, cache/, et logs/.</p>
+                        
+                        <h6><i class="fas fa-download me-2"></i>Dépendances</h6>
+                        <p class="small text-muted">Exécutez <code>composer install</code> pour installer les dépendances.</p>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-primary mt-3" onclick="location.reload()">
+                <i class="fas fa-sync-alt me-2"></i>Vérifier à nouveau
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

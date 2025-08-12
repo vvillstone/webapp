@@ -1,0 +1,105 @@
+{% extends 'install/base.html.twig' %}
+
+{% block title %}Finalisation - Installation{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2><i class="fas fa-check-circle me-2"></i>Finalisation de l'installation</h2>
+    <p class="text-muted">Vérification finale et finalisation de l'installation de votre application.</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h5 class="mb-3"><i class="fas fa-clipboard-check me-2"></i>Vérification finale</h5>
+        
+        {% for check in finalCheck %}
+            <div class="check-item {% if check.status %}success{% else %}danger{% endif %}">
+                <div class="check-icon">
+                    {% if check.status %}
+                        <i class="fas fa-check-circle"></i>
+                    {% else %}
+                        <i class="fas fa-times-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">{{ check.name }}</h6>
+                    <p class="mb-0 text-muted">{{ check.message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        {% set allChecksPassed = finalCheck|filter(check => not check.status)|length == 0 %}
+        
+        {% if allChecksPassed %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Parfait !</strong> Toutes les vérifications sont passées avec succès.
+            </div>
+            
+            <form method="post" class="d-inline">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Finaliser l'installation
+                </button>
+            </form>
+        {% else %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Attention !</strong> Certaines vérifications ont échoué. Veuillez corriger ces problèmes avant de finaliser.
+            </div>
+            
+            <div class="mt-3">
+                <h5>Problèmes détectés :</h5>
+                <div class="row text-start">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-database me-2"></i>Base de données</h6>
+                        <p class="small text-muted">Vérifiez que votre serveur MySQL est démarré et accessible.</p>
+                        
+                        <h6><i class="fas fa-user me-2"></i>Utilisateur administrateur</h6>
+                        <p class="small text-muted">Assurez-vous que le compte administrateur a été créé correctement.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-folder me-2"></i>Permissions</h6>
+                        <p class="small text-muted">Vérifiez les permissions des dossiers var/, cache/, logs/.</p>
+                        
+                        <h6><i class="fas fa-cog me-2"></i>Cache</h6>
+                        <p class="small text-muted">Le dossier cache doit être accessible en écriture.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline-primary mt-3" onclick="location.reload()">
+                <i class="fas fa-sync-alt me-2"></i>Vérifier à nouveau
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <div class="alert alert-info">
+        <h6><i class="fas fa-info-circle me-2"></i>Ce qui va se passer lors de la finalisation</h6>
+        <ul class="mb-0">
+            <li>Création du fichier de verrouillage d'installation</li>
+            <li>Vidage du cache de l'application</li>
+            <li>Création des dossiers nécessaires</li>
+            <li>Configuration finale de l'application</li>
+            <li>Redirection vers la page d'accueil</li>
+        </ul>
+    </div>
+</div>
+
+<div class="mt-4">
+    <div class="alert alert-warning">
+        <h6><i class="fas fa-exclamation-triangle me-2"></i>Après l'installation</h6>
+        <ul class="mb-0">
+            <li>Vous serez redirigé vers la page d'accueil de l'application</li>
+            <li>Connectez-vous avec les identifiants administrateur créés</li>
+            <li>L'assistant d'installation ne sera plus accessible</li>
+            <li>Vous pourrez configurer les paramètres avancés depuis l'interface d'administration</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

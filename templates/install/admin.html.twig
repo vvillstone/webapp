@@ -1,0 +1,250 @@
+{% extends 'install/base.html.twig' %}
+
+{% block title %}Création administrateur - Installation{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2><i class="fas fa-user-shield me-2"></i>Création du compte administrateur</h2>
+    <p class="text-muted">Créez le compte administrateur principal qui aura accès à toutes les fonctionnalités de l'application.</p>
+</div>
+
+<form method="post" id="adminForm">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="admin_firstname" class="form-label">
+                    <i class="fas fa-user me-2"></i>Prénom
+                </label>
+                <input type="text" class="form-control" id="admin_firstname" name="admin_firstname" 
+                       required minlength="2">
+                <div class="form-text">Le prénom de l'administrateur</div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="admin_lastname" class="form-label">
+                    <i class="fas fa-user me-2"></i>Nom
+                </label>
+                <input type="text" class="form-control" id="admin_lastname" name="admin_lastname" 
+                       required minlength="2">
+                <div class="form-text">Le nom de famille de l'administrateur</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label for="admin_email" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Adresse e-mail
+                </label>
+                <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                       required>
+                <div class="form-text">Cette adresse servira d'identifiant de connexion</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="admin_password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Mot de passe
+                </label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="admin_password" name="admin_password" 
+                           required minlength="8">
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength">
+                    <div class="d-flex justify-content-between">
+                        <span id="strengthText">Force du mot de passe</span>
+                        <span id="strengthScore"></span>
+                    </div>
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthBar"></div>
+                    </div>
+                </div>
+                <div class="form-text">Le mot de passe doit contenir au moins 8 caractères</div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="admin_password_confirm" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Confirmation du mot de passe
+                </label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="admin_password_confirm" 
+                           name="admin_password_confirm" required minlength="8">
+                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div id="passwordMatch" class="mt-2"></div>
+                <div class="form-text">Répétez le mot de passe pour confirmation</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ path('app_install_database') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-user-plus me-2"></i>Créer le compte administrateur
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="mt-4">
+    <div class="alert alert-warning">
+        <h6><i class="fas fa-exclamation-triangle me-2"></i>Important</h6>
+        <ul class="mb-0">
+            <li>Ce compte aura tous les droits d'administration sur l'application</li>
+            <li>Choisissez un mot de passe fort et sécurisé</li>
+            <li>Conservez ces informations de connexion en lieu sûr</li>
+            <li>Vous pourrez créer d'autres comptes utilisateurs après l'installation</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById('admin_password');
+    const confirmPasswordField = document.getElementById('admin_password_confirm');
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const strengthText = document.getElementById('strengthText');
+    const strengthScore = document.getElementById('strengthScore');
+    const strengthBar = document.getElementById('strengthBar');
+    const passwordMatch = document.getElementById('passwordMatch');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+    
+    toggleConfirmPassword.addEventListener('click', function() {
+        const type = confirmPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordField.setAttribute('type', type);
+        toggleConfirmPassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+    
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        let score = 0;
+        let feedback = [];
+        
+        if (password.length >= 8) score += 1;
+        else feedback.push('Au moins 8 caractères');
+        
+        if (/[a-z]/.test(password)) score += 1;
+        else feedback.push('Au moins une minuscule');
+        
+        if (/[A-Z]/.test(password)) score += 1;
+        else feedback.push('Au moins une majuscule');
+        
+        if (/[0-9]/.test(password)) score += 1;
+        else feedback.push('Au moins un chiffre');
+        
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+        else feedback.push('Au moins un caractère spécial');
+        
+        return { score, feedback };
+    }
+    
+    function updatePasswordStrength() {
+        const password = passwordField.value;
+        const { score, feedback } = checkPasswordStrength(password);
+        
+        // Update strength bar
+        strengthBar.className = 'strength-fill';
+        if (score <= 1) {
+            strengthBar.classList.add('strength-weak');
+            strengthText.textContent = 'Faible';
+            strengthScore.textContent = score + '/5';
+        } else if (score <= 2) {
+            strengthBar.classList.add('strength-fair');
+            strengthText.textContent = 'Moyen';
+            strengthScore.textContent = score + '/5';
+        } else if (score <= 3) {
+            strengthBar.classList.add('strength-good');
+            strengthText.textContent = 'Bon';
+            strengthScore.textContent = score + '/5';
+        } else {
+            strengthBar.classList.add('strength-strong');
+            strengthText.textContent = 'Fort';
+            strengthScore.textContent = score + '/5';
+        }
+        
+        // Show feedback if password is weak
+        if (score < 3 && password.length > 0) {
+            strengthText.textContent += ' - ' + feedback.join(', ');
+        }
+    }
+    
+    function checkPasswordMatch() {
+        const password = passwordField.value;
+        const confirmPassword = confirmPasswordField.value;
+        
+        if (confirmPassword.length === 0) {
+            passwordMatch.innerHTML = '';
+            return false;
+        }
+        
+        if (password === confirmPassword) {
+            passwordMatch.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Les mots de passe correspondent</span>';
+            return true;
+        } else {
+            passwordMatch.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Les mots de passe ne correspondent pas</span>';
+            return false;
+        }
+    }
+    
+    function validateForm() {
+        const password = passwordField.value;
+        const confirmPassword = confirmPasswordField.value;
+        const { score } = checkPasswordStrength(password);
+        const passwordsMatch = checkPasswordMatch();
+        
+        const isPasswordStrong = score >= 3;
+        const isPasswordLongEnough = password.length >= 8;
+        const isConfirmPasswordFilled = confirmPassword.length > 0;
+        
+        submitBtn.disabled = !(isPasswordStrong && isPasswordLongEnough && passwordsMatch && isConfirmPasswordFilled);
+    }
+    
+    // Event listeners
+    passwordField.addEventListener('input', function() {
+        updatePasswordStrength();
+        checkPasswordMatch();
+        validateForm();
+    });
+    
+    confirmPasswordField.addEventListener('input', function() {
+        checkPasswordMatch();
+        validateForm();
+    });
+    
+    // Check other required fields
+    const requiredFields = ['admin_firstname', 'admin_lastname', 'admin_email'];
+    requiredFields.forEach(fieldId => {
+        document.getElementById(fieldId).addEventListener('input', validateForm);
+    });
+    
+    // Initial validation
+    validateForm();
+});
+</script>
+{% endblock %}

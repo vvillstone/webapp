@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Installation - Application Symfony{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #343a40;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .install-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        
+        .install-header {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .install-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .install-header p {
+            margin: 1rem 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .progress-container {
+            background: #f8f9fa;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            color: #6c757d;
+        }
+        
+        .step.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .step.completed {
+            color: var(--success-color);
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .step.active .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .install-content {
+            padding: 2rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #e9ecef;
+        }
+        
+        .check-item.success {
+            background: #d4edda;
+            border-left-color: var(--success-color);
+        }
+        
+        .check-item.warning {
+            background: #fff3cd;
+            border-left-color: var(--warning-color);
+        }
+        
+        .check-item.danger {
+            background: #f8d7da;
+            border-left-color: var(--danger-color);
+        }
+        
+        .check-icon {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .check-item.success .check-icon {
+            color: var(--success-color);
+        }
+        
+        .check-item.warning .check-icon {
+            color: var(--warning-color);
+        }
+        
+        .check-item.danger .check-icon {
+            color: var(--danger-color);
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-connection-btn {
+            margin-top: 1rem;
+        }
+        
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.25rem;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .strength-weak { background: var(--danger-color); width: 25%; }
+        .strength-fair { background: var(--warning-color); width: 50%; }
+        .strength-good { background: #17a2b8; width: 75%; }
+        .strength-strong { background: var(--success-color); width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="install-container">
+            <div class="install-header">
+                <h1><i class="fas fa-cog fa-spin me-3"></i>Installation</h1>
+                <p>Configuration de votre application Symfony</p>
+            </div>
+            
+            <div class="progress-container">
+                <div class="step-indicator">
+                    <div class="step {% if step >= 1 %}active{% endif %} {% if step > 1 %}completed{% endif %}">
+                        <div class="step-number">1</div>
+                        <span>Vérification système</span>
+                    </div>
+                    <div class="step {% if step >= 2 %}active{% endif %} {% if step > 2 %}completed{% endif %}">
+                        <div class="step-number">2</div>
+                        <span>Base de données</span>
+                    </div>
+                    <div class="step {% if step >= 3 %}active{% endif %} {% if step > 3 %}completed{% endif %}">
+                        <div class="step-number">3</div>
+                        <span>Administrateur</span>
+                    </div>
+                    <div class="step {% if step >= 4 %}active{% endif %}">
+                        <div class="step-number">4</div>
+                        <span>Finalisation</span>
+                    </div>
+                </div>
+                
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{ (step / totalSteps) * 100 }}%" 
+                         aria-valuenow="{{ step }}" aria-valuemin="0" aria-valuemax="{{ totalSteps }}"></div>
+                </div>
+            </div>
+            
+            <div class="install-content">
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

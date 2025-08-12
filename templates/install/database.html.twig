@@ -1,0 +1,203 @@
+{% extends 'install/base.html.twig' %}
+
+{% block title %}Configuration base de données - Installation{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2><i class="fas fa-database me-2"></i>Configuration de la base de données</h2>
+    <p class="text-muted">Configurez la connexion à votre base de données MySQL/MariaDB.</p>
+</div>
+
+<form method="post" id="databaseForm">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="db_host" class="form-label">
+                    <i class="fas fa-server me-2"></i>Hôte de la base de données
+                </label>
+                <input type="text" class="form-control" id="db_host" name="db_host" 
+                       value="localhost" required>
+                <div class="form-text">L'adresse de votre serveur MySQL (ex: localhost, 127.0.0.1)</div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="db_port" class="form-label">
+                    <i class="fas fa-network-wired me-2"></i>Port
+                </label>
+                <input type="number" class="form-control" id="db_port" name="db_port" 
+                       value="3306" min="1" max="65535" required>
+                <div class="form-text">Le port MySQL (3306 par défaut)</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="db_name" class="form-label">
+                    <i class="fas fa-database me-2"></i>Nom de la base de données
+                </label>
+                <input type="text" class="form-control" id="db_name" name="db_name" 
+                       value="symfony_app" required>
+                <div class="form-text">Le nom de votre base de données</div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="db_user" class="form-label">
+                    <i class="fas fa-user me-2"></i>Nom d'utilisateur
+                </label>
+                <input type="text" class="form-control" id="db_user" name="db_user" 
+                       value="symfony_user" required>
+                <div class="form-text">L'utilisateur MySQL avec les droits sur la base</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="db_password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Mot de passe
+                </label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="db_password" name="db_password" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="form-text">Le mot de passe de l'utilisateur MySQL</div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" class="btn btn-outline-primary w-100" id="testConnection">
+                    <i class="fas fa-plug me-2"></i>Tester la connexion
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="connectionResult" class="mt-3" style="display: none;"></div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ path('app_install') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Retour
+            </a>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-save me-2"></i>Enregistrer et continuer
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="mt-4">
+    <div class="alert alert-info">
+        <h6><i class="fas fa-info-circle me-2"></i>Informations importantes</h6>
+        <ul class="mb-0">
+            <li>Assurez-vous que votre serveur MySQL/MariaDB est démarré</li>
+            <li>La base de données doit exister ou l'utilisateur doit avoir les droits de création</li>
+            <li>L'utilisateur doit avoir les droits SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER</li>
+            <li>Si la base n'existe pas, elle sera créée automatiquement</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('db_password');
+    const testConnectionBtn = document.getElementById('testConnection');
+    const connectionResult = document.getElementById('connectionResult');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+    
+    // Test database connection
+    testConnectionBtn.addEventListener('click', function() {
+        const formData = new FormData();
+        formData.append('db_host', document.getElementById('db_host').value);
+        formData.append('db_port', document.getElementById('db_port').value);
+        formData.append('db_name', document.getElementById('db_name').value);
+        formData.append('db_user', document.getElementById('db_user').value);
+        formData.append('db_password', document.getElementById('db_password').value);
+        
+        testConnectionBtn.disabled = true;
+        testConnectionBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Test en cours...';
+        
+        fetch('{{ path("app_install_test_database") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            connectionResult.style.display = 'block';
+            if (data.success) {
+                connectionResult.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Succès !</strong> ${data.message}
+                    </div>
+                `;
+                submitBtn.disabled = false;
+            } else {
+                connectionResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Erreur !</strong> ${data.message}
+                    </div>
+                `;
+                submitBtn.disabled = true;
+            }
+        })
+        .catch(error => {
+            connectionResult.style.display = 'block';
+            connectionResult.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <strong>Erreur !</strong> Impossible de tester la connexion : ${error.message}
+                </div>
+            `;
+            submitBtn.disabled = true;
+        })
+        .finally(() => {
+            testConnectionBtn.disabled = false;
+            testConnectionBtn.innerHTML = '<i class="fas fa-plug me-2"></i>Tester la connexion';
+        });
+    });
+    
+    // Disable submit button initially
+    submitBtn.disabled = true;
+    
+    // Enable submit when all fields are filled
+    const formFields = ['db_host', 'db_port', 'db_name', 'db_user', 'db_password'];
+    formFields.forEach(fieldId => {
+        document.getElementById(fieldId).addEventListener('input', checkFormCompletion);
+    });
+    
+    function checkFormCompletion() {
+        const allFilled = formFields.every(fieldId => {
+            const field = document.getElementById(fieldId);
+            return field.value.trim() !== '';
+        });
+        submitBtn.disabled = !allFilled;
+    }
+    
+    // Initial check
+    checkFormCompletion();
+});
+</script>
+{% endblock %}
