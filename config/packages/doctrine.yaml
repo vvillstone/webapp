@@ -21,4 +21,29 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+            User:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Modules/User/Entity'
+                prefix: 'Modules\User\Entity'
+                alias: User
+            Business:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Modules/Business/Entity'
+                prefix: 'Modules\Business\Entity'
+                alias: Business
+            Core:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Modules/Core/Entity'
+                prefix: 'Modules\Core\Entity'
+                alias: Core
+            Analytics:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Modules/Analytics/Entity'
+                prefix: 'Modules\Analytics\Entity'
+                alias: Analytics
+            Notification:
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Modules/Notification/Entity'
+                prefix: 'Modules\Notification\Entity'
+                alias: Notification
 

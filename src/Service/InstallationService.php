@@ -290,13 +290,30 @@ class InstallationService
             $connection = $this->entityManager->getConnection();
             $schemaManager = $connection->createSchemaManager();
             
-            // Vérifier si les tables existent déjà
+            // Vérifier si les tables existent déjà et sont valides
             $tables = $schemaManager->listTableNames();
+            $requiredTables = ['user', 'messenger_messages'];
+            $allTablesExist = true;
             
-            if (empty($tables)) {
-                // Créer le schéma de base de données
+            // Vérifier que toutes les tables requises existent
+            foreach ($requiredTables as $requiredTable) {
+                if (!in_array($requiredTable, $tables)) {
+                    $allTablesExist = false;
+                    break;
+                }
+            }
+            
+            if (empty($tables) || !$allTablesExist) {
+                // Récupérer les métadonnées
                 $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
                 $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($this->entityManager);
+                
+                // Supprimer toutes les tables existantes pour éviter les conflits
+                if (!empty($tables)) {
+                    $schemaTool->dropSchema($metadata);
+                }
+                
+                // Créer le schéma de base de données
                 $schemaTool->createSchema($metadata);
             }
         } catch (\Exception $e) {

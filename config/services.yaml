@@ -21,6 +21,21 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
             - '../src/Command/InitGlobalConfigCommand.php'
+            - '../src/Migrations/'
+            - '../src/Modules/'
+    
+    # Modules
+    Modules\:
+        resource: '../src/Modules/'
+        exclude:
+            - '../src/Modules/*/Entity/'
+            - '../src/Modules/*/Repository/'
+            - '../src/Modules/*/AnalyticsBundle.php'
+            - '../src/Modules/*/ApiBundle.php'
+            - '../src/Modules/*/BusinessBundle.php'
+            - '../src/Modules/*/CoreBundle.php'
+            - '../src/Modules/*/NotificationBundle.php'
+            - '../src/Modules/*/UserBundle.php'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

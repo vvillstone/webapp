@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier l'Utilisateur{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Modifier l'Utilisateur</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="firstName" class="form-label">Prénom *</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" 
+                                           value="{{ user.firstName }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="lastName" class="form-label">Nom *</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" 
+                                           value="{{ user.lastName }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Nouveau mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="password" minlength="8">
+                            <div class="form-text">Laissez vide pour conserver le mot de passe actuel. Le nouveau mot de passe doit contenir au moins 8 caractères.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Rôle *</label>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="">Sélectionner un rôle</option>
+                                        <option value="admin" {{ user.role == 'admin' ? 'selected' : '' }}>Administrateur</option>
+                                        <option value="employee" {{ user.role == 'employee' ? 'selected' : '' }}>Employé</option>
+                                        <option value="client" {{ user.role == 'client' ? 'selected' : '' }}>Client</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="isActive" name="isActive" value="1" 
+                                               {{ user.isActive ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="isActive">
+                                            Utilisateur actif
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="{{ path('admin_users_show', {'id': user.id}) }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Retour
+                                </a>
+                                <a href="{{ path('admin_users_index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-list"></i> Liste
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer les modifications
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

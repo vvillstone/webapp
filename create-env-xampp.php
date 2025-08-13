@@ -1,0 +1,36 @@
+<?php
+/**
+ * Script de création du fichier .env pour XAMPP
+ */
+
+$envContent = '# define your env variables for the dev env here
+DATABASE_URL="mysql://root:@localhost:3306/symfony_app?serverVersion=8.0&charset=utf8mb4"
+
+###> lexik/jwt-authentication-bundle ###
+JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+JWT_PASSPHRASE=your_jwt_passphrase_here
+###< lexik/jwt-authentication-bundle ###
+
+###> symfony/messenger ###
+MESSENGER_TRANSPORT_DSN=redis://redis:6379/messenger
+###< symfony/messenger ###
+
+###> symfony/mercure-bundle ###
+MERCURE_URL=http://mercure:80/.well-known/mercure
+MERCURE_PUBLIC_URL=http://localhost:3000/.well-known/mercure
+MERCURE_JWT_SECRET=!ChangeThisMercureHubJWTSecretKey!
+###< symfony/mercure-bundle ###
+
+###> nelmio/cors-bundle ###
+CORS_ALLOW_ORIGIN=\'^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$\'
+###< nelmio/cors-bundle ###
+';
+
+// Écrire le fichier .env
+if (file_put_contents('.env', $envContent)) {
+    echo "✓ Fichier .env créé avec la configuration XAMPP\n";
+    echo "✓ DATABASE_URL configuré pour root@localhost\n";
+} else {
+    echo "❌ Erreur lors de la création du fichier .env\n";
+}
