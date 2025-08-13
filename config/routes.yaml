@@ -4,10 +4,10 @@ controllers:
         namespace: App\Controller
     type: attribute
 
-api_platform:
-    resource: .
-    type: api_platform
-    prefix: /api
+# api_platform:
+#     resource: .
+#     type: api_platform
+#     prefix: /api
 
 # Routes pour les modules
 user_routes:

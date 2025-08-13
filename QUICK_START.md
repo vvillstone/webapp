@@ -1,91 +1,74 @@
-# 🚀 Guide de Démarrage Rapide
+# 🚀 Démarrage rapide du serveur
 
-## Installation en 3 étapes
+## Méthode simple (Recommandée)
 
-### 1. Préparation (2 minutes)
-
-```bash
-# Vérifier les prérequis
-php check-permissions.php
-
-# Installer les dépendances
-composer install
+### 1. Ouvrir XAMPP Control Panel
+```cmd
+start C:\xampp\xampp-control.exe
 ```
 
-### 2. Lancement de l'assistant (5 minutes)
+### 2. Démarrer les services
+- Cliquez sur **"Start"** à côté d'**Apache**
+- Cliquez sur **"Start"** à côté de **MySQL**
+- Attendez que les statuts deviennent **verts**
 
-1. Démarrez votre serveur web (Apache/Nginx)
-2. Ouvrez votre navigateur
-3. Accédez à votre application
-4. Vous serez automatiquement redirigé vers l'assistant d'installation
+### 3. Tester l'application
+- Ouvrez votre navigateur
+- Allez sur : **http://localhost/**
 
-### 3. Configuration (10 minutes)
+## URLs importantes
 
-Suivez les 4 étapes de l'assistant :
+- **Application Symfony** : http://localhost/
+- **phpMyAdmin** : http://localhost/phpmyadmin/
+- **XAMPP Panel** : http://localhost/xampp/
 
-1. **✅ Vérification système** - Vérification automatique des prérequis
-2. **🗄️ Base de données** - Configuration MySQL/MariaDB
-3. **👤 Administrateur** - Création du compte admin
-4. **🎉 Finalisation** - Installation terminée !
+## Configuration requise (une seule fois)
 
-## 🔧 Configuration requise
+### 1. Activer l'extension intl
+1. Ouvrir `C:\xampp\php\php.ini`
+2. Chercher `;extension=intl`
+3. Retirer le point-virgule : `extension=intl`
+4. Sauvegarder et redémarrer Apache
 
-### Serveur
-- PHP 8.1 ou supérieur
-- MySQL 5.7+ ou MariaDB 10.2+
-- Serveur web (Apache/Nginx)
+### 2. Configurer la base de données
+1. Créer une base de données dans phpMyAdmin :
+   ```sql
+   CREATE DATABASE symfony_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
 
-### Extensions PHP
-- pdo_mysql
-- mbstring
-- xml
-- curl
-- zip (optionnel)
+2. Configurer le fichier `.env` :
+   ```env
+   DATABASE_URL="mysql://root:@127.0.0.1:3306/symfony_app?serverVersion=8.0&charset=utf8mb4"
+   ```
 
-### Permissions
-- Écriture sur `var/`
-- Écriture sur `public/uploads/`
+3. Exécuter les migrations :
+   ```cmd
+   php bin/console doctrine:migrations:migrate
+   ```
 
-## 🚨 Problèmes courants
+## Commandes utiles
 
-### Extension zip manquante
-```bash
-# Ubuntu/Debian
-sudo apt-get install php-zip
+```cmd
+# Vérifier la configuration
+php test-xampp-config.php
 
-# Windows (XAMPP)
-# Activez l'extension dans php.ini
+# Vider le cache
+php bin/console cache:clear
+
+# Vérifier les routes
+php bin/console debug:router
 ```
 
-### Permissions insuffisantes
-```bash
-# Linux/Mac
-chmod -R 755 var/
-chmod -R 755 public/uploads/
+## Dépannage
 
-# Windows
-# Assurez-vous que le serveur web a les droits d'écriture
-```
+### Erreur 500
+- Vérifiez les logs : `var/logs/dev.log`
+- Videz le cache : `php bin/console cache:clear`
 
-### Base de données inaccessible
-- Vérifiez que MySQL est démarré
-- Vérifiez les paramètres de connexion
-- Vérifiez les droits de l'utilisateur
-
-## 🔄 Réinitialisation
-
-Si vous devez relancer l'assistant :
-
-```bash
-php bin/console app:reset-installation
-```
-
-## 📞 Support
-
-- Documentation complète : `INSTALLATION_WIZARD.md`
-- Script de test : `php test-installation.php`
-- Logs d'erreur : `var/log/`
+### Services ne démarrent pas
+- Redémarrez XAMPP Control Panel en tant qu'administrateur
+- Vérifiez qu'aucun autre service n'utilise les ports 80 et 3306
 
 ---
 
-**🎯 Objectif :** Installation complète en moins de 15 minutes !
+**🎉 Votre serveur est prêt !**

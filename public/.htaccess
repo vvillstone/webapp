@@ -1,0 +1,32 @@
+RewriteEngine On
+
+# Handle Authorization Header
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Redirect Trailing Slashes If Not A Folder...
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [L,R=301]
+
+# Send Requests To Front Controller...
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Disable access to sensitive files
+<FilesMatch "^\.env|composer\.(json|lock)|package\.json|yarn\.lock|webpack\.mix\.js|gulpfile\.js|README\.md|LICENSE\.txt$">
+    Require all denied
+</FilesMatch>
+
+# Disable access to directories
+<DirectoryMatch "^/(src|config|templates|translations|migrations|tests)/">
+    Require all denied
+</DirectoryMatch>

@@ -4,9 +4,10 @@ framework:
         buses:
             messenger.bus.default: ~
         transports:
-            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            async: 'sync://'
             failed: 'doctrine://default?queue_name=failed'
         routing:
-            'Modules\Core\Message\AsyncMessage': async
-            'Modules\Core\Message\EmailMessage': async
-            'Modules\Notification\Message\NotificationMessage': async
+            # Temporairement désactivé car les modules ne sont pas chargés
+            # 'Modules\Core\Message\AsyncMessage': async
+            # 'Modules\Core\Message\EmailMessage': async
+            # 'Modules\Notification\Message\NotificationMessage': async

@@ -3,14 +3,13 @@
 namespace App\Service;
 
 use App\Entity\User;
-use App\Entity\Employee;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Process\Process;
+
 
 class InstallationService
 {
@@ -131,21 +130,13 @@ class InstallationService
         $user = new User();
         $user->setEmail($data['admin_email']);
         $user->setRoles(['ROLE_ADMIN']);
-        $user->setIsActive(true);
+        $user->setFirstname($data['admin_firstname']);
+        $user->setLastname($data['admin_lastname']);
         
         $hashedPassword = $this->passwordHasher->hashPassword($user, $data['admin_password']);
         $user->setPassword($hashedPassword);
 
-        // Créer l'employé associé
-        $employee = new Employee();
-        $employee->setFirstname($data['admin_firstname']);
-        $employee->setLastname($data['admin_lastname']);
-        $employee->setEmail($data['admin_email']);
-        $employee->setUser($user);
-        $employee->setIsActive(true);
-
         $this->entityManager->persist($user);
-        $this->entityManager->persist($employee);
         $this->entityManager->flush();
     }
 
@@ -164,6 +155,8 @@ class InstallationService
 
     public function getFinalCheck(): array
     {
+        $adminUserExists = $this->checkAdminUserExists();
+        
         return [
             'database' => [
                 'name' => 'Base de données',
@@ -172,8 +165,8 @@ class InstallationService
             ],
             'admin_user' => [
                 'name' => 'Utilisateur administrateur',
-                'status' => $this->checkAdminUserExists(),
-                'message' => 'Compte administrateur créé'
+                'status' => $adminUserExists,
+                'message' => $adminUserExists ? 'Compte administrateur créé' : 'Aucun administrateur trouvé'
             ],
             'cache' => [
                 'name' => 'Cache',
@@ -292,20 +285,37 @@ class InstallationService
 
     private function runMigrations(): void
     {
-        $process = new Process(['php', 'bin/console', 'doctrine:migrations:migrate', '--no-interaction'], $this->projectDir);
-        $process->setTimeout(300);
-        $process->run();
-        
-        if (!$process->isSuccessful()) {
-            throw new \Exception('Erreur lors des migrations : ' . $process->getErrorOutput());
+        try {
+            // Utiliser Doctrine directement au lieu de la commande console
+            $connection = $this->entityManager->getConnection();
+            $schemaManager = $connection->createSchemaManager();
+            
+            // Vérifier si les tables existent déjà
+            $tables = $schemaManager->listTableNames();
+            
+            if (empty($tables)) {
+                // Créer le schéma de base de données
+                $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+                $schemaTool = new \Doctrine\ORM\Tools\SchemaTool($this->entityManager);
+                $schemaTool->createSchema($metadata);
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('Erreur lors des migrations : ' . $e->getMessage());
         }
     }
 
     private function clearCache(): void
     {
-        $process = new Process(['php', 'bin/console', 'cache:clear'], $this->projectDir);
-        $process->setTimeout(60);
-        $process->run();
+        try {
+            // Vider le cache en supprimant les fichiers
+            $cacheDir = $this->projectDir . '/var/cache';
+            if ($this->filesystem->exists($cacheDir)) {
+                $this->filesystem->remove($cacheDir);
+                $this->filesystem->mkdir($cacheDir, 0755);
+            }
+        } catch (\Exception $e) {
+            // Ignorer les erreurs de cache pour l'installation
+        }
     }
 
     private function createRequiredDirectories(): void
@@ -337,8 +347,17 @@ class InstallationService
     private function checkAdminUserExists(): bool
     {
         try {
-            $adminUser = $this->entityManager->getRepository(User::class)->findOneBy(['roles' => ['ROLE_ADMIN']]);
-            return $adminUser !== null;
+            // Récupérer tous les utilisateurs et vérifier leurs rôles
+            $users = $this->entityManager->getRepository(User::class)->findAll();
+            
+            foreach ($users as $user) {
+                $roles = $user->getRoles();
+                if (in_array('ROLE_ADMIN', $roles)) {
+                    return true;
+                }
+            }
+            
+            return false;
         } catch (\Exception $e) {
             return false;
         }
