@@ -90,3 +90,4 @@ Write-Host "Si le problème persiste, vérifiez :" -ForegroundColor Yellow
 Write-Host "- Que le serveur PHP est démarré" -ForegroundColor Yellow
 Write-Host "- Que MySQL est démarré" -ForegroundColor Yellow
 Write-Host "- Les logs dans var/logs/dev.log" -ForegroundColor Yellow
+
